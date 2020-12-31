@@ -82,8 +82,7 @@ class SaveFetcherGUI(tk.Frame):
         buttonframe = tk.Frame(self)
         container = tk.Frame(self)
 
-        # pack last?
-        buttonframe.pack(side="top", fill="x", expand=False)
+        buttonframe.pack(side="bottom", fill="x", expand=False)
         container.pack(side="top", fill="both", expand=True)
 
         for page in self.pages:
@@ -92,7 +91,7 @@ class SaveFetcherGUI(tk.Frame):
             page.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
         self.button = tk.Button(buttonframe, text="next page", command=self.next_page)
-        self.button.pack(side="left")
+        self.button.pack(side="top", anchor="center", pady=50)
         self.pages[0].lift()
 
     def next_page(self):
@@ -113,12 +112,17 @@ class SaveFetcherGUI(tk.Frame):
                 self.pages[self.current_page].change_label(err, -1)
 
     def saved_posts(self):
+        self.pages[2].buttons[-1].pack_forget()
         message = self.save_fetcher.saved_posts()
         self.pages[2].change_label(message, -1)
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
     main = SaveFetcherGUI(root)
     main.pack(side="top", fill="both", expand=True)
     root.wm_geometry("400x400")
+    root.resizable(0, 0)
     root.mainloop()
+
+if __name__ == "__main__":
+    main()

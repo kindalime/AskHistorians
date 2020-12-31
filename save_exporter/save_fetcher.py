@@ -27,9 +27,9 @@ class SaveFetcher():
         except Exception as e:
             print(e)
             if hasattr(e, 'message'):
-                return False, e.message
+                return False, "Error: " + e.message
             else:
-                return False, str(e)
+                return False, "Error: " + str(e)
         else:
             return True, None
 
@@ -53,8 +53,8 @@ class SaveFetcher():
         except Exception as e:
             print(e)
             if hasattr(e, 'message'):
-                return e.message
+                return "Error: " + e.message
             else:
-                return str(e)
+                return "Error: " + str(e)
         else:
             return "Success! Check this program's location for results."
