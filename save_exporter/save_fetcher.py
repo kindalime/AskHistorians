@@ -40,12 +40,13 @@ class SaveFetcher():
     def saved_posts(self):
         try:
             saved = [post for post in self.reddit.user.me().saved(limit=None)]
-            with open("results.tsv", "w") as f:
+            with open("results.csv", "w") as f:
                 f.write("Post Author,Post Permalink,Post Score,Submission Author,Submission Permalink,Submission Score\n")
                 for post in saved:
                     if type(post) is praw.models.Comment:
-                        if post.subreddit.name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
-                            line = f"{post.author.name},{post.permalink},{post.score},{post.submission.name},{post.submission.permalink},{post.submission.score}\n"
+                        if post.subreddit.display_name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
+                            line = f"{post.author.name},{post.permalink},{post.score},{post.submission.author.name},{post.submission.permalink},{post.submission.score}\n"
+                            print(line)
                             f.write(line)
                             post.unsave()
         except Exception as e:
@@ -55,4 +56,4 @@ class SaveFetcher():
             else:
                 return str(e)
         else:
-            return "Success! Check this file's location for results."
+            return "Success! Check this program's location for results."
