@@ -6,6 +6,7 @@ import sys
 import datetime
 import pytz
 from utils import *
+import csv
 
 class SaveFetcher():
     def __init__(self):
@@ -41,13 +42,13 @@ class SaveFetcher():
         try:
             saved = [post for post in self.reddit.user.me().saved(limit=None)]
             with open("results.csv", "w") as f:
-                f.write("Post Author,Post Permalink,Post Score,Submission Author,Submission Permalink,Submission Score\n")
+                writer = csv.writer(f)
+                writer.writerow("Post Author", "Post Permalink", "Post Score", "Submission Author", "Submission Permalink", "Submission Score")
                 for post in saved:
                     if type(post) is praw.models.Comment:
                         if post.subreddit.display_name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
-                            line = f"{post.author.name},{post.permalink},{post.score},{post.submission.author.name},{post.submission.permalink},{post.submission.score}\n"
-                            print(line)
-                            f.write(line)
+                            line = [post.author.name, post.permalink, post.score, post.submission.author.name, post.submission.permalink, post.submission.score]
+                            writer.writerow(line)
                             post.unsave()
         except Exception as e:
             print(e)
