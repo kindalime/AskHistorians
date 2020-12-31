@@ -24,7 +24,7 @@ class SaveFetcher():
         client_id = os.getenv("CLIENTID")
         client_secret = os.getenv("CLIENTSECRET")
 
-        user_agent = "SaveFetcher:v0.0.1 (by u/AverageAngryPeasant)"
+        user_agent = "SaveFetcher:v1.0 (by u/AverageAngryPeasant)"
         self.reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent, username=username, password=password)
         
         try:
