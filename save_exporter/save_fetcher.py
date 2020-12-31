@@ -1,4 +1,5 @@
 import praw
+import prawcore
 from dotenv import load_dotenv
 import os
 import sys
@@ -7,35 +8,51 @@ import pytz
 from utils import *
 
 class SaveFetcher():
-    def __init__(self, username, password, client_id, client_secret, from_stamp, to_stamp):
+    def __init__(self):
+        pass
+
+    def reddit_signin(self, username, password):
+        load_dotenv()
+        client_id = os.getenv("CLIENTID")
+        client_secret = os.getenv("CLIENTSECRET")
+
         user_agent = "SaveFetcher:v0.0.1 (by u/AverageAngryPeasant)"
         self.reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent, username=username, password=password)
-        self.redditor = self.reddit.redditor(name=username)
-        self.from_stamp = from_stamp
-        self.to_stamp = to_stamp
         
-    def get_saved_posts(self):
-        saved = [post for post in self.reddit.user.me().saved(limit=None)]
-        for post in saved:
-            if type(post) is praw.models.Comment:
-                if self.post.subreddit.name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
-                    # write to file
-                    print(post.author.name)
-                    print(post.permalink)
-                    print(post.submission.name)
-                    print(post.submission.permalink)
-                    print(post.submission.score)
-                    print(post.score)
-                    post.unsave()
-        return saved
+        try:
+            self.reddit.user.me()
+        except prawcore.ResponseException:
+            return False, "Error: invalid credentials!"
+        except Exception as e:
+            print(e)
+            if hasattr(e, 'message'):
+                return False, e.message
+            else:
+                return False, str(e)
+        else:
+            return True, None
 
-if __name__ == "__main__":
-    load_dotenv()
-    username = os.getenv("USERNAME")
-    password = os.getenv("PASSWORD")
-    client_id = os.getenv("CLIENTID")
-    client_secret = os.getenv("CLIENTSECRET")
-    s = SaveFetcher(username, password)
-    # s.get_saved_posts()
-    stamp = s.get_unix_time(2020, 12, 30, pytz.timezone("America/New_York"))
-    print(datetime.datetime.fromtimestamp(stamp, tz=datetime.timezone.utc))
+    def create_stamps(self, from_date, to_date):
+        self.from_stamp = get_unix_time(from_date)
+        self.to_stamp = get_unix_time(to_date)
+        return True, None
+        
+    def saved_posts(self):
+        try:
+            saved = [post for post in self.reddit.user.me().saved(limit=None)]
+            with open("results.tsv", "w") as f:
+                f.write("Post Author,Post Permalink,Post Score,Submission Author,Submission Permalink,Submission Score\n")
+                for post in saved:
+                    if type(post) is praw.models.Comment:
+                        if post.subreddit.name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
+                            line = f"{post.author.name},{post.permalink},{post.score},{post.submission.name},{post.submission.permalink},{post.submission.score}\n"
+                            f.write(line)
+                            post.unsave()
+        except Exception as e:
+            print(e)
+            if hasattr(e, 'message'):
+                return e.message
+            else:
+                return str(e)
+        else:
+            return "Success! Check this file's location for results."

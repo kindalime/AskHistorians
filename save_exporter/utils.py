@@ -1,7 +1,9 @@
 import datetime
+import pytz
+from tzlocal import get_localzone
 
-def get_unix_time(year, month, day, timezone):
-    date = datetime.datetime(year, month, day)
-    date = timezone.localize(date)
+def get_unix_time(date):
+    date = datetime.datetime.combine(date, datetime.time())
+    date = get_localzone().localize(date)
     stamp = date.timestamp()
     return stamp
