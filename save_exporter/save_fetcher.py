@@ -13,6 +13,9 @@ class SaveFetcher():
         pass
 
     def reddit_signin(self, username, password):
+        if not username or not password:
+            return False, "Error: blank username/password!"
+
         load_dotenv()
         client_id = os.getenv("CLIENTID")
         client_secret = os.getenv("CLIENTSECRET")
@@ -36,6 +39,8 @@ class SaveFetcher():
     def create_stamps(self, from_date, to_date):
         self.from_stamp = get_unix_time(from_date)
         self.to_stamp = get_unix_time(to_date)
+        if self.to_stamp < self.from_stamp:
+            return False, "Error: from date after to date!"
         return True, None
         
     def saved_posts(self):

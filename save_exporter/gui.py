@@ -69,7 +69,8 @@ class SaveFetcherGUI(tk.Frame):
         self.pages[0].add_label("Input your credentials here.")
         self.pages[1].add_calendar("From Date")
         self.pages[1].add_calendar("To Date")
-        self.pages[2].add_label("Currently working...")
+        self.pages[1].add_label("Input the from and to dates here.")
+        self.pages[2].add_label("Press the button to begin.")
         self.pages[2].add_button("Begin!", self.saved_posts)
 
         self.current_page = 0
