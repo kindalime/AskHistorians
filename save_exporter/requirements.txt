@@ -1,3 +1,5 @@
 tkcalendar
+praw
 prawcore
 pytz
+tzlocal
