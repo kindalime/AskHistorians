@@ -8,6 +8,8 @@ from tkcalendar import DateEntry
 from save_fetcher import SaveFetcher
 
 class Page(tk.Frame):
+    """Class used for basic pages, with labels and maybe buttons."""
+
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
         self.labels = []
@@ -27,6 +29,8 @@ class Page(tk.Frame):
         self.buttons.append(button)
 
 class CredentialInput(Page):
+    """Class used for pages with inputs."""
+
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         self.entries = []
@@ -44,6 +48,8 @@ class CredentialInput(Page):
         self.entries.append(cal)
 
 class CalendarSelect(Page):
+    """Class used for pages with calendar inputs."""
+
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         self.calendars = []
@@ -58,28 +64,32 @@ class CalendarSelect(Page):
         self.calendars.append(cal)
 
 class SaveFetcherGUI(tk.Frame):
+    """Class that sets up the GUI for the save fetcher and handles running functions on SaveFetcher."""
+
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
-        self.setup_style()
         self.save_fetcher = SaveFetcher()
-
-        self.pages = [CredentialInput(self), CalendarSelect(self), Page(self)]
-        self.pages[0].add_entry("Username")
-        self.pages[0].add_entry("Password", True)
-        self.pages[0].add_label("Input your credentials here.")
-        self.pages[1].add_calendar("From Date")
-        self.pages[1].add_calendar("To Date")
-        self.pages[1].add_label("Input the from and to dates here.")
-        self.pages[2].add_label("Press the button to begin.")
-        self.pages[2].add_button("Begin!", self.saved_posts)
-
-        self.current_page = 0
+        self.pages = self.page_setup()
         self.setup_gui()
+        self.current_page = 0
 
-    def setup_style(self):
-        pass
+    def page_setup(self):
+        """Method that builds all of the pages used for this application."""
+
+        pages = [CredentialInput(self), CalendarSelect(self), Page(self)]
+        pages[0].add_entry("Username")
+        pages[0].add_entry("Password", True)
+        pages[0].add_label("Input your credentials here.")
+        pages[1].add_calendar("From Date")
+        pages[1].add_calendar("To Date")
+        pages[1].add_label("Input the from and to dates here.")
+        pages[2].add_label("Press the button to begin.")
+        pages[2].add_button("Begin!", self.saved_posts)
+        return pages
 
     def setup_gui(self):
+        """Method that sets up the actual gui, including implementing the pages and other frames."""
+
         buttonframe = tk.Frame(self)
         container = tk.Frame(self)
 
@@ -96,6 +106,8 @@ class SaveFetcherGUI(tk.Frame):
         self.pages[0].lift()
 
     def next_page(self):
+        """Method that determines what to do when the next page button is clicked."""
+
         if self.current_page + 1 < len(self.pages):
             if self.current_page == 0:
                 result, err = self.save_fetcher.reddit_signin(self.pages[0].entries[0].get(), self.pages[0].entries[1].get())
@@ -113,11 +125,15 @@ class SaveFetcherGUI(tk.Frame):
                 self.pages[self.current_page].change_label(err, -1)
 
     def saved_posts(self):
+        """Wrapper method that calls the main functionality in self.save_fetcher."""
+
         self.pages[2].buttons[-1].pack_forget()
         message = self.save_fetcher.saved_posts()
         self.pages[2].change_label(message, -1)
 
 def main():
+    """Main method that sets up the root frame and runs the program."""
+
     root = tk.Tk()
     main = SaveFetcherGUI(root)
     main.pack(side="top", fill="both", expand=True)

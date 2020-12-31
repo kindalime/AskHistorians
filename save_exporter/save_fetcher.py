@@ -9,10 +9,14 @@ from utils import *
 import csv
 
 class SaveFetcher():
+    """Class that handles all of the internal work with reddit for fetching saves."""
+
     def __init__(self):
         pass
 
     def reddit_signin(self, username, password):
+        """Method that handles reddit authentication with praw."""
+
         if not username or not password:
             return False, "Error: blank username/password!"
 
@@ -37,6 +41,8 @@ class SaveFetcher():
             return True, None
 
     def create_stamps(self, from_date, to_date):
+        """Method that creates unix timestamps from dates, taking time zone into account."""
+
         self.from_stamp = get_unix_time(from_date)
         self.to_stamp = get_unix_time(to_date)
         if self.to_stamp < self.from_stamp:
@@ -44,6 +50,8 @@ class SaveFetcher():
         return True, None
         
     def saved_posts(self):
+        """Method that fetches saved posts from a given subreddit and time period, exports its info, and then unsaves them."""
+
         try:
             saved = [post for post in self.reddit.user.me().saved(limit=None)]
             with open("results.csv", "w") as f:
