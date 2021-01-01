@@ -54,9 +54,9 @@ class SaveFetcher():
 
         try:
             saved = [post for post in self.reddit.user.me().saved(limit=None)]
-            with open("results.csv", "w") as f:
+            with open("results.csv", "w", newline="", encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow("Post Author", "Post Permalink", "Post Score", "Submission Author", "Submission Permalink", "Submission Score")
+                writer.writerow(["Post Author", "Post Permalink", "Post Score", "Submission Author", "Submission Permalink", "Submission Score"])
                 for post in saved:
                     if type(post) is praw.models.Comment:
                         if post.subreddit.display_name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
