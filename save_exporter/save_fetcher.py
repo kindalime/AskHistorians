@@ -14,7 +14,7 @@ class SaveFetcher():
     def __init__(self):
         pass
 
-    def reddit_signin(self, username, password):
+    def reddit_signin(self, username, password, twofac):
         """Method that handles reddit authentication with praw."""
 
         if not username or not password:
@@ -23,6 +23,9 @@ class SaveFetcher():
         load_dotenv()
         client_id = os.getenv("CLIENTID")
         client_secret = os.getenv("CLIENTSECRET")
+
+        if twofac:
+            password = password + ":" + twofac
 
         user_agent = "SaveFetcher:v1.0 (by u/AverageAngryPeasant)"
         self.reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent, username=username, password=password)
@@ -51,7 +54,6 @@ class SaveFetcher():
         
     def saved_posts(self, unsave):
         """Method that fetches saved posts from a given subreddit and time period, exports its info, and then unsaves them."""
-        print(unsave)
 
         try:
             saved = [post for post in self.reddit.user.me().saved(limit=None)]

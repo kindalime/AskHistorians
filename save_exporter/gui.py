@@ -74,6 +74,7 @@ class SaveFetcherGUI(tk.Frame):
         pages = [Page(self), Page(self), Page(self)]
         pages[0].add_entry("Username")
         pages[0].add_entry("Password", True)
+        pages[0].add_entry("2FA", True)
         pages[0].add_label("Input your credentials here.")
         pages[1].add_calendar("From Date")
         pages[1].add_calendar("To Date")
@@ -106,7 +107,7 @@ class SaveFetcherGUI(tk.Frame):
 
         if self.current_page + 1 < len(self.pages):
             if self.current_page == 0:
-                result, err = self.save_fetcher.reddit_signin(self.pages[0].entries[0].get(), self.pages[0].entries[1].get())
+                result, err = self.save_fetcher.reddit_signin(self.pages[0].entries[0].get(), self.pages[0].entries[1].get(), self.pages[0].entries[2].get())
             elif self.current_page == 1:
                 result, err = self.save_fetcher.create_stamps(self.pages[1].calendars[0].get_date(), self.pages[1].calendars[1].get_date())
             else:
