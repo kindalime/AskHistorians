@@ -14,7 +14,10 @@ class Page(tk.Frame):
         tk.Frame.__init__(self, *args, **kwargs)
         self.labels = []
         self.buttons = []
-    
+        self.calendars = []
+        self.entries = []
+        self.checks = []
+
     def add_label(self, text):
         label = tk.Label(self, text=text)
         label.pack(padx=10, pady=10)
@@ -28,13 +31,6 @@ class Page(tk.Frame):
         button.pack(padx=10, pady=10)
         self.buttons.append(button)
 
-class CredentialInput(Page):
-    """Class used for pages with inputs."""
-
-    def __init__(self, *args, **kwargs):
-        Page.__init__(self, *args, **kwargs)
-        self.entries = []
-    
     def add_entry(self, text, show=False):
         label = tk.Label(self, text=text)
         label.pack(padx=10, pady=10)
@@ -47,13 +43,6 @@ class CredentialInput(Page):
         cal.pack(padx=10, pady=10)
         self.entries.append(cal)
 
-class CalendarSelect(Page):
-    """Class used for pages with calendar inputs."""
-
-    def __init__(self, *args, **kwargs):
-        Page.__init__(self, *args, **kwargs)
-        self.calendars = []
-    
     def add_calendar(self, text):
         label = tk.Label(self, text=text)
         label.pack(padx=10, pady=10)
@@ -62,6 +51,12 @@ class CalendarSelect(Page):
         cal = DateEntry(self, width=12, background='darkblue', foreground='white', borderwidth=2)
         cal.pack(padx=10, pady=10)
         self.calendars.append(cal)
+
+    def add_check(self, text):
+        checkvar = tk.BooleanVar()
+        check = tk.Checkbutton(self, text=text, var=checkvar)
+        check.pack(padx=10, pady=10)
+        self.checks.append([check, checkvar])
 
 class SaveFetcherGUI(tk.Frame):
     """Class that sets up the GUI for the save fetcher and handles running functions on SaveFetcher."""
@@ -76,7 +71,7 @@ class SaveFetcherGUI(tk.Frame):
     def page_setup(self):
         """Method that builds all of the pages used for this application."""
 
-        pages = [CredentialInput(self), CalendarSelect(self), Page(self)]
+        pages = [Page(self), Page(self), Page(self)]
         pages[0].add_entry("Username")
         pages[0].add_entry("Password", True)
         pages[0].add_label("Input your credentials here.")
@@ -85,6 +80,7 @@ class SaveFetcherGUI(tk.Frame):
         pages[1].add_label("Input the from and to dates here.")
         pages[2].add_label("Press the button to begin.")
         pages[2].add_button("Begin!", self.saved_posts)
+        pages[2].add_check("Check to unsave fetched posts.")
         return pages
 
     def setup_gui(self):
@@ -127,8 +123,9 @@ class SaveFetcherGUI(tk.Frame):
     def saved_posts(self):
         """Wrapper method that calls the main functionality in self.save_fetcher."""
 
-        self.pages[2].buttons[-1].pack_forget()
-        message = self.save_fetcher.saved_posts()
+        self.pages[2].buttons[0].pack_forget()
+        self.pages[2].checks[0][0].pack_forget()
+        message = self.save_fetcher.saved_posts(self.pages[2].checks[0][1].get())
         self.pages[2].change_label(message, -1)
 
 def main():

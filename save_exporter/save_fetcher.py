@@ -49,8 +49,9 @@ class SaveFetcher():
             return False, "Error: from date after to date!"
         return True, None
         
-    def saved_posts(self):
+    def saved_posts(self, unsave):
         """Method that fetches saved posts from a given subreddit and time period, exports its info, and then unsaves them."""
+        print(unsave)
 
         try:
             saved = [post for post in self.reddit.user.me().saved(limit=None)]
@@ -62,7 +63,8 @@ class SaveFetcher():
                         if post.subreddit.display_name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
                             line = [post.author.name, post.permalink, post.score, post.submission.author.name, post.submission.permalink, post.submission.score]
                             writer.writerow(line)
-                            post.unsave()
+                            if unsave:
+                                post.unsave()
         except Exception as e:
             print(e)
             if hasattr(e, 'message'):
