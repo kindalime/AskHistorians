@@ -29,7 +29,7 @@ class SaveFetcher():
 
         user_agent = "SaveFetcher:v1.0 (by u/AverageAngryPeasant)"
         self.reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent, username=username, password=password)
-        
+
         try:
             self.reddit.user.me()
         except prawcore.ResponseException:
@@ -59,11 +59,11 @@ class SaveFetcher():
             saved = [post for post in self.reddit.user.me().saved(limit=None)]
             with open("results.csv", "w", newline="", encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(["Post Author", "Post Permalink", "Post Score", "Submission Author", "Submission Permalink", "Submission Score"])
+                writer.writerow(["Post Author", "Post Permalink", "Post Score", "Post Date", "Submission Author", "Submission Permalink", "Submission Score", "Submission Title"])
                 for post in saved:
                     if type(post) is praw.models.Comment:
                         if post.subreddit.display_name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
-                            line = [post.author.name, post.permalink, post.score, post.submission.author.name, post.submission.permalink, post.submission.score]
+                            line = [post.author.name, post.permalink, post.score, get_date(post.created_utc).date(), post.submission.author.name, post.submission.permalink, post.submission.score, post.submission.title]
                             writer.writerow(line)
                             if unsave:
                                 post.unsave()
