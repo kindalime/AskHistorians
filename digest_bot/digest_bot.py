@@ -28,16 +28,18 @@ class DigestBot:
 
     def parse_message(self, message):
         text = message.body.strip()
+        user = message.author.name
+
         if text in ["!sub", "!subscribe"]:
-            pass
+            self.add_user(user)
         elif text in ["!unsub", "!unsubscribe"]:
-            pass
+            self.remove_user(user)
         elif text in ["!mod"]:
-            pass
+            self.mod_user(user)
         elif text in ["!unmod"]:
-            pass
+            self.unmod_user(user)
         else:
-            pass
+            self.send_message(message)
 
     def add_user(self, username):
         self.cursor.execute("INSERT INTO SUBS (username, mod) VALUES (" + username + ", 0)")
@@ -55,8 +57,25 @@ class DigestBot:
         self.cursor.execute("UPDATE subs SET mod = 0 WHERE username = " + username)
         self.db.commit()
 
-    def send_pm(self, message):
+    def send_message(self, message):
+        text = message.body.strip()
+        user = message.author.name
+        subject = message.subject
+
+        self.cursor.execute("SELECT username FROM subs where username = " + user)
+        result = self.cursor.fetchone()
+        if result:
+            self.send_digest(self, subject, text)
+        else:
+            self.send_pm(user, subject, text)
+
+    def send_digest(self, subject, text):
         pass
+
+    def send_pm(self, user, subject, text):
+        if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod"] and text[0] != "!":
+            text = "User " + user + " has sent you a message through DigestBot:\n" + "SUBJECT: " + subject + "\n" + text
+            self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
 
     def main(self):
         for message in self.reddit.inbox.stream():
