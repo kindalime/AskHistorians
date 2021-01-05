@@ -62,7 +62,8 @@ class DigestBot:
         user = message.author.name
         subject = message.subject
 
-        self.cursor.execute("SELECT username FROM subs where username = " + user)
+        # checks if there is a mod with the user's name
+        self.cursor.execute("SELECT username FROM subs where username = " + user + "AND mod = 1")
         result = self.cursor.fetchone()
         if result:
             self.send_digest(self, subject, text)
@@ -70,7 +71,9 @@ class DigestBot:
             self.send_pm(user, subject, text)
 
     def send_digest(self, subject, text):
-        pass
+        users = "SELECT username FROM subs"
+        for username in users:
+            pass
 
     def send_pm(self, user, subject, text):
         if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod"] and text[0] != "!":
@@ -78,6 +81,10 @@ class DigestBot:
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
 
     def main(self):
+        # what does this return past the intial 100?
         for message in self.reddit.inbox.stream():
             self.parse_message(message)
             message.mark_read()
+
+bot = DigestBot()
+bot.main()
