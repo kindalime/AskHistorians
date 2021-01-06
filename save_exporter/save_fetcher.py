@@ -61,9 +61,9 @@ class SaveFetcher():
                 writer = csv.writer(f)
                 writer.writerow(["Post Author", "Post Permalink", "Post Score", "Post Date", "Submission Author", "Submission Permalink", "Submission Score", "Submission Title"])
                 for post in saved:
-                    if type(post) is praw.models.Comment:
+                    if post and type(post) is praw.models.Comment:
                         if post.subreddit.display_name == "AskHistorians" and self.from_stamp < post.created_utc < self.to_stamp:
-                            line = [post.author.name, post.permalink, post.score, get_date(post.created_utc).date(), post.submission.author.name, post.submission.permalink, post.submission.score, post.submission.title]
+                            line = [self.determine_deleted(post.author), post.permalink, post.score, get_date(post.created_utc).date(), self.determine_deleted(post.submission.author), post.submission.permalink, post.submission.score, post.submission.title]
                             writer.writerow(line)
                             if unsave:
                                 post.unsave()
@@ -75,3 +75,9 @@ class SaveFetcher():
                 return "Error: " + str(e)
         else:
             return "Success! Check this program's location for results."
+
+    def determine_deleted(self, author):
+        if author:
+            return author.name
+        else:
+            return "[deleted]"
