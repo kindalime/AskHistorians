@@ -52,12 +52,17 @@ class SaveFetcher():
             return False, "Error: from date after to date!"
         return True, None
         
-    def saved_posts(self, unsave):
+    def saved_posts(self, unsave, name):
         """Method that fetches saved posts from a given subreddit and time period, exports its info, and then unsaves them."""
 
         try:
             saved = [post for post in self.reddit.user.me().saved(limit=None)]
-            with open("results.csv", "w", newline="", encoding='utf-8') as f:
+            if not name:
+                name = "results.csv"
+            else:
+                name = name + ".csv"
+
+            with open(name, "w", newline="", encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow(["Post Author", "Post Permalink", "Post Score", "Post Date", "Submission Author", "Submission Permalink", "Submission Score", "Submission Title"])
                 for post in saved:

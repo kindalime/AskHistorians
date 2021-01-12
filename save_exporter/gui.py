@@ -82,6 +82,7 @@ class SaveFetcherGUI(tk.Frame):
         pages[2].add_label("Press the button to begin.")
         pages[2].add_button("Begin!", self.saved_posts)
         pages[2].add_check("Check to unsave fetched posts.")
+        pages[2].add_entry("Input the name of the results file. Leave blank for \"results\".")
         return pages
 
     def setup_gui(self):
@@ -105,29 +106,46 @@ class SaveFetcherGUI(tk.Frame):
     def next_page(self):
         """Method that determines what to do when the next page button is clicked."""
 
-        if self.current_page + 1 < len(self.pages):
+        if self.current_page < len(self.pages):
             if self.current_page == 0:
                 result, err = self.save_fetcher.reddit_signin(self.pages[0].entries[0].get(), self.pages[0].entries[1].get(), self.pages[0].entries[2].get())
             elif self.current_page == 1:
                 result, err = self.save_fetcher.create_stamps(self.pages[1].calendars[0].get_date(), self.pages[1].calendars[1].get_date())
-            else:
-                return False
+            else: # self.current_page == 2
+                result, err = True, None
 
             if result:
-                self.current_page += 1
+                if self.current_page == 2:
+                    self.current_page = 1
+                else:
+                    self.current_page += 1
+                self.button["text"] = "Next Page"
+
                 self.pages[self.current_page].lift()
                 if self.current_page == 2:
-                    self.button.pack_forget()
+                    self.reset_final_page()
             else:
                 self.pages[self.current_page].change_label(err, -1)
+
+    def reset_final_page(self):
+        """Method that resets the final page to prepare for multiple uses."""
+
+        self.button["text"] = "Previous Page"
+        self.pages[2].buttons[0].pack(padx=10, pady=10)
+        self.pages[2].checks[0][0].pack(padx=10, pady=10)
+        self.pages[2].labels[1].pack(padx=10, pady=10)
+        self.pages[2].entries[0].pack(padx=10, pady=10)
+        self.pages[2].change_label("Press the button to begin.", 0)
 
     def saved_posts(self):
         """Wrapper method that calls the main functionality in self.save_fetcher."""
 
         self.pages[2].buttons[0].pack_forget()
         self.pages[2].checks[0][0].pack_forget()
-        message = self.save_fetcher.saved_posts(self.pages[2].checks[0][1].get())
-        self.pages[2].change_label(message, -1)
+        self.pages[2].labels[1].pack_forget()
+        self.pages[2].entries[0].pack_forget()
+        message = self.save_fetcher.saved_posts(self.pages[2].checks[0][1].get(), self.pages[2].entries[0].get())
+        self.pages[2].change_label(message, 0)
 
 def main():
     """Main method that sets up the root frame and runs the program."""
@@ -135,7 +153,7 @@ def main():
     root = tk.Tk()
     main = SaveFetcherGUI(root)
     main.pack(side="top", fill="both", expand=True)
-    root.wm_geometry("400x400")
+    root.wm_geometry("600x600")
     root.resizable(0, 0)
     root.mainloop()
 
