@@ -24,7 +24,7 @@ class DigestBot:
         db = sqlite3.connect("subs.db")
         c = db.cursor()
         if not exists:
-            c.execute("CREATE TABLE SUBS ([username] text, [mod] integer)")
+            c.execute("CREATE TABLE SUBS ([user] text, [mod] integer)")
         db.commit()
         return db
 
@@ -43,52 +43,52 @@ class DigestBot:
         else:
             self.send_message(message)
 
-    def check_user(self, username):
-        self.cursor.execute("SELECT username FROM subs where username = '" + username + "'")
+    def check_user(self, user):
+        self.cursor.execute("SELECT user FROM subs where user = '" + user + "'")
         return self.cursor.fetchone() != None
 
-    def check_mod(self, username):
-        if username in ["AngryAveragePeasant", "Georgy_K_Zhukov", "AHMessengerBot"]:
+    def check_mod(self, user):
+        if user in ["AngryAveragePeasant", "Georgy_K_Zhukov", "AHMessengerBot"]:
             return True
 
-        self.cursor.execute("SELECT username FROM subs where username = '" + username + "' AND mod = 1")
+        self.cursor.execute("SELECT user FROM subs where user = '" + user + "' AND mod = 1")
         result = self.cursor.fetchone()
         return result != None
 
-    def add_user(self, username):
-        if self.check_user(username):
+    def add_user(self, user):
+        if self.check_user(user):
             return
 
-        self.cursor.execute("INSERT INTO SUBS VALUES ('" + username + "', 0)")
+        self.cursor.execute("INSERT INTO SUBS VALUES ('" + user + "', 0)")
         self.db.commit()
-        print("add user " + username)
+        print("add user " + user)
         self.print_db()
 
-    def remove_user(self, username):
-        if not self.check_user(username):
+    def remove_user(self, user):
+        if not self.check_user(user):
             return
 
-        self.cursor.execute("DELETE FROM SUBS WHERE username = '" + username + "'")
+        self.cursor.execute("DELETE FROM SUBS WHERE user = '" + user + "'")
         self.db.commit()
-        print("remove user " + username)
+        print("remove user " + user)
         self.print_db()
 
-    def mod_user(self, username):
-        if not self.check_user(username) and not self.check_mod(username):
+    def mod_user(self, user):
+        if not self.check_user(user) and not self.check_mod(user):
             return
 
-        self.cursor.execute("UPDATE subs SET mod = 1 WHERE username = '" + username + "'")
+        self.cursor.execute("UPDATE subs SET mod = 1 WHERE user = '" + user + "'")
         self.db.commit()
-        print("mod user " + username)
+        print("mod user " + user)
         self.print_db()
 
-    def unmod_user(self, username):
-        if not self.check_user(username) and not self.check_mod(username):
+    def unmod_user(self, user):
+        if not self.check_user(user) and not self.check_mod(user):
             return
 
-        self.cursor.execute("UPDATE subs SET mod = 0 WHERE username = '" + username + "'")
+        self.cursor.execute("UPDATE subs SET mod = 0 WHERE user = '" + user + "'")
         self.db.commit()
-        print("unmod user " + username)
+        print("unmod user " + user)
         self.print_db()
 
     def send_message(self, message):
@@ -108,10 +108,10 @@ class DigestBot:
             self.send_pm(user, subject, text)
 
     def send_digest(self, subject, text):
-        users = self.cursor.execute("SELECT username FROM subs")
-        for username in users:
-            username = username[0]
-            self.reddit.redditor(username).message(subject, text)
+        users = self.cursor.execute("SELECT user FROM subs")
+        for user in users:
+            user = user[0]
+            self.reddit.redditor(user).message(subject, text)
 
     def send_pm(self, user, subject, text):
         if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod", "send"] and text[0] != "!":
