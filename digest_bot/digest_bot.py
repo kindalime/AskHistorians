@@ -9,6 +9,7 @@ class DigestBot:
         self.reddit = self.reddit_init()
         self.db = self.create_database()
         self.cursor = self.db.cursor()
+        self.debug = os.getenv("AHDEBUG") in ["TRUE", "true"]
 
     def reddit_init(self):
         load_dotenv()
@@ -61,8 +62,10 @@ class DigestBot:
 
         self.cursor.execute("INSERT INTO SUBS VALUES ('" + user + "', 0)")
         self.db.commit()
-        print("add user " + user)
-        self.print_db()
+
+        if self.debug:
+            print("add user " + user)
+            self.print_db()
 
     def remove_user(self, user):
         if not self.check_user(user):
@@ -70,8 +73,10 @@ class DigestBot:
 
         self.cursor.execute("DELETE FROM SUBS WHERE user = '" + user + "'")
         self.db.commit()
-        print("remove user " + user)
-        self.print_db()
+
+        if self.debug:
+            print("remove user " + user)
+            self.print_db()
 
     def mod_user(self, user):
         if not self.check_user(user) and not self.check_mod(user):
@@ -79,8 +84,10 @@ class DigestBot:
 
         self.cursor.execute("UPDATE subs SET mod = 1 WHERE user = '" + user + "'")
         self.db.commit()
-        print("mod user " + user)
-        self.print_db()
+
+        if self.debug:
+            print("mod user " + user)
+            self.print_db()
 
     def unmod_user(self, user):
         if not self.check_user(user) and not self.check_mod(user):
@@ -88,8 +95,10 @@ class DigestBot:
 
         self.cursor.execute("UPDATE subs SET mod = 0 WHERE user = '" + user + "'")
         self.db.commit()
-        print("unmod user " + user)
-        self.print_db()
+
+        if self.debug:
+            print("unmod user " + user)
+            self.print_db()
 
     def send_message(self, message):
         text = message.body.strip()
@@ -112,11 +121,17 @@ class DigestBot:
         for user in users:
             user = user[0]
             self.reddit.redditor(user).message(subject, text)
+        
+        if self.debug:
+            print("digest sent")
 
     def send_pm(self, user, subject, text):
         if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod", "send"] and text[0] != "!":
             text = "User " + user + " has sent you a message through DigestBot:\n" + "SUBJECT: " + subject + "\n" + text
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
+
+        if self.debug:
+            print("pm sent to " + user)
 
     def print_db(self):
         self.cursor.execute("SELECT * FROM SUBS")
