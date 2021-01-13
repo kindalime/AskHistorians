@@ -47,6 +47,14 @@ class DigestBot:
         self.cursor.execute("SELECT username FROM subs where username = '" + username + "'")
         return self.cursor.fetchone() != None
 
+    def check_mod(self, username):
+        if username in ["AngryAveragePeasant", "Georgy_K_Zhukov", "AHMessengerBot"]:
+            return True
+
+        self.cursor.execute("SELECT username FROM subs where username = '" + username + "' AND mod = 1")
+        result = self.cursor.fetchone()
+        return result != None
+
     def add_user(self, username):
         if self.check_user(username):
             return
@@ -66,7 +74,7 @@ class DigestBot:
         self.print_db()
 
     def mod_user(self, username):
-        if not self.check_user(username):
+        if not self.check_user(username) and not self.check_mod(username):
             return
 
         self.cursor.execute("UPDATE subs SET mod = 1 WHERE username = '" + username + "'")
@@ -75,7 +83,7 @@ class DigestBot:
         self.print_db()
 
     def unmod_user(self, username):
-        if not self.check_user(username):
+        if not self.check_user(username) and not self.check_mod(username):
             return
 
         self.cursor.execute("UPDATE subs SET mod = 0 WHERE username = '" + username + "'")
@@ -92,9 +100,7 @@ class DigestBot:
             self.send_pm(user, subject, text)
 
         # checks if there is a mod with the user's name
-        self.cursor.execute("SELECT username FROM subs where username = '" + user + "' AND mod = 1")
-        result = self.cursor.fetchone()
-        if result:
+        if self.check_mod(user):
             if text == "!send":
                 self.send_pm(user, subject, "Error: must include message to send!")
             self.send_digest(subject, text[text.find(" ")+1:])
