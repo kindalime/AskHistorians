@@ -20,9 +20,11 @@ class DigestBot:
         return praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent, username=username, password=password)
 
     def create_database(self):
-        db = sqlite3.connect("users.db")
+        exists = os.path.isfile("subs.db")
+        db = sqlite3.connect("subs.db")
         c = db.cursor()
-        c.execute("CREATE TABLE SUBS ([username] text UNIQUE, [mod] integer)")
+        if not exists:
+            c.execute("CREATE TABLE SUBS ([username] text UNIQUE, [mod] integer)")
         db.commit()
         return db
 
@@ -44,18 +46,26 @@ class DigestBot:
     def add_user(self, username):
         self.cursor.execute("INSERT INTO SUBS VALUES ('" + username + "', 0)")
         self.db.commit()
+        print("add user " + username)
+        self.print_db()
 
     def remove_user(self, username):
         self.cursor.execute("DELETE FROM SUBS WHERE username = '" + username + "'")
         self.db.commit()
+        print("remove user " + username)
+        self.print_db()
 
     def mod_user(self, username):
         self.cursor.execute("UPDATE subs SET mod = 1 WHERE username = '" + username + "'")
         self.db.commit()
+        print("mod user " + username)
+        self.print_db()
 
     def unmod_user(self, username):
         self.cursor.execute("UPDATE subs SET mod = 0 WHERE username = '" + username + "'")
         self.db.commit()
+        print("unmod user " + username)
+        self.print_db()
 
     def send_message(self, message):
         text = message.body.strip()
@@ -86,11 +96,16 @@ class DigestBot:
             text = "User " + user + " has sent you a message through DigestBot:\n" + "SUBJECT: " + subject + "\n" + text
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
 
+    def print_db(self):
+        self.cursor.execute("SELECT * FROM SUBS")
+        print(c.fetchall())
+
     def main(self):
         # what does this return past the intial 100?
         for message in self.reddit.inbox.stream():
             self.parse_message(message)
             message.mark_read()
 
-bot = DigestBot()
-bot.main()
+if __name__ == "__main__":
+    bot = DigestBot()
+    bot.main()
