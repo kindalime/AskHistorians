@@ -63,7 +63,7 @@ class DigestBot:
         subject = message.subject
 
         # checks if there is a mod with the user's name
-        self.cursor.execute("SELECT username FROM subs where username = " + user + "AND mod = 1")
+        self.cursor.execute("SELECT username FROM subs where username = '" + user + "' AND mod = 1")
         result = self.cursor.fetchone()
         if result:
             self.send_digest(self, subject, text)
@@ -71,9 +71,10 @@ class DigestBot:
             self.send_pm(user, subject, text)
 
     def send_digest(self, subject, text):
-        users = "SELECT username FROM subs"
+        users = self.cursor.execute("SELECT username FROM subs")
         for username in users:
-            pass
+            username = username[0]
+            # send the digest to this person
 
     def send_pm(self, user, subject, text):
         if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod"] and text[0] != "!":
