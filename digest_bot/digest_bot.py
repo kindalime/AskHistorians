@@ -42,19 +42,19 @@ class DigestBot:
             self.send_message(message)
 
     def add_user(self, username):
-        self.cursor.execute("INSERT INTO SUBS (username, mod) VALUES (" + username + ", 0)")
+        self.cursor.execute("INSERT INTO SUBS VALUES ('" + username + "', 0)")
         self.db.commit()
 
     def remove_user(self, username):
-        self.cursor.execute("DELETE FROM SUBS WHERE username = " + username)
+        self.cursor.execute("DELETE FROM SUBS WHERE username = '" + username + "'")
         self.db.commit()
 
     def mod_user(self, username):
-        self.cursor.execute("UPDATE subs SET mod = 1 WHERE username = " + username)
+        self.cursor.execute("UPDATE subs SET mod = 1 WHERE username = '" + username + "'")
         self.db.commit()
 
     def unmod_user(self, username):
-        self.cursor.execute("UPDATE subs SET mod = 0 WHERE username = " + username)
+        self.cursor.execute("UPDATE subs SET mod = 0 WHERE username = '" + username + "'")
         self.db.commit()
 
     def send_message(self, message):
