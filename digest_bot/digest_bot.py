@@ -62,11 +62,16 @@ class DigestBot:
         user = message.author.name
         subject = message.subject
 
+        if " " not in text or text[:text.find(" ")] != "!send":
+            self.send_pm(user, subject, text)
+
         # checks if there is a mod with the user's name
         self.cursor.execute("SELECT username FROM subs where username = '" + user + "' AND mod = 1")
         result = self.cursor.fetchone()
         if result:
-            self.send_digest(self, subject, text)
+            if text == "!send":
+                self.send_pm(user, subject, "Error: must include message to send!")
+            self.send_digest(subject, text[text.find(" ")+1:])
         else:
             self.send_pm(user, subject, text)
 
@@ -74,7 +79,7 @@ class DigestBot:
         users = self.cursor.execute("SELECT username FROM subs")
         for username in users:
             username = username[0]
-            # send the digest to this person
+            self.reddit.redditor(username).message(subject, text)
 
     def send_pm(self, user, subject, text):
         if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod"] and text[0] != "!":
