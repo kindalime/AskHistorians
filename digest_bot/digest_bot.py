@@ -24,7 +24,7 @@ class DigestBot:
         db = sqlite3.connect("subs.db")
         c = db.cursor()
         if not exists:
-            c.execute("CREATE TABLE SUBS ([username] text UNIQUE, [mod] integer)")
+            c.execute("CREATE TABLE SUBS ([username] text, [mod] integer)")
         db.commit()
         return db
 
@@ -43,25 +43,41 @@ class DigestBot:
         else:
             self.send_message(message)
 
+    def check_user(self, username):
+        self.cursor.execute("SELECT username FROM subs where username = '" + username + "'")
+        return self.cursor.fetchone() != None
+
     def add_user(self, username):
+        if self.check_user(username):
+            return
+
         self.cursor.execute("INSERT INTO SUBS VALUES ('" + username + "', 0)")
         self.db.commit()
         print("add user " + username)
         self.print_db()
 
     def remove_user(self, username):
+        if not self.check_user(username):
+            return
+
         self.cursor.execute("DELETE FROM SUBS WHERE username = '" + username + "'")
         self.db.commit()
         print("remove user " + username)
         self.print_db()
 
     def mod_user(self, username):
+        if not self.check_user(username):
+            return
+
         self.cursor.execute("UPDATE subs SET mod = 1 WHERE username = '" + username + "'")
         self.db.commit()
         print("mod user " + username)
         self.print_db()
 
     def unmod_user(self, username):
+        if not self.check_user(username):
+            return
+
         self.cursor.execute("UPDATE subs SET mod = 0 WHERE username = '" + username + "'")
         self.db.commit()
         print("unmod user " + username)
@@ -92,15 +108,16 @@ class DigestBot:
             self.reddit.redditor(username).message(subject, text)
 
     def send_pm(self, user, subject, text):
-        if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod"] and text[0] != "!":
+        if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod", "send"] and text[0] != "!":
             text = "User " + user + " has sent you a message through DigestBot:\n" + "SUBJECT: " + subject + "\n" + text
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
 
     def print_db(self):
         self.cursor.execute("SELECT * FROM SUBS")
-        print(c.fetchall())
+        print(self.cursor.fetchall())
 
     def main(self):
+        self.print_db()
         # what does this return past the intial 100?
         for message in self.reddit.inbox.stream():
             self.parse_message(message)
