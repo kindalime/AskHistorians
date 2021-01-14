@@ -29,27 +29,47 @@ class DigestBot:
         db.commit()
         return db
 
+    def extract_command(self, text):
+        text = text.strip()
+        if " " not in text:
+            return text, ""
+        else:
+            return text[:text.find(" ")], text[text.find(" ") + 1:]
+
     def parse_message(self, message):
-        text = message.body.strip()
+        command, text = self.extract_command(message.body)
+        subject = message.subject
+        if self.debug:
+            print(command, text)
         user = message.author.name
 
-        if text in ["!sub", "!subscribe"]:
+        if command in ["!sub", "!subscribe"]:
             self.add_user(user)
-        elif text in ["!unsub", "!unsubscribe"]:
+        elif command in ["!unsub", "!unsubscribe"]:
             self.remove_user(user)
-        elif text in ["!mod"]:
-            self.mod_user(user)
-        elif text in ["!unmod"]:
-            self.unmod_user(user)
+        elif command in ["!mod"]:
+            self.mod_user(user, text)
+        elif command in ["!unmod"]:
+            self.unmod_user(user, text)
+        elif command in ["!send"]:
+            if self.check_mod(user):
+                if not text:
+                    self.send_pm(user, subject, "Error: must include message to send!")
+                else:
+                    self.send_digest(subject, text[text.find(" ")+1:])
+            else:
+                self.send_pm(user, subject, text)
         else:
-            self.send_message(message)
+            text = message.body.strip()
+            user = message.author.name
+            self.send_pm(user, subject, text)
 
     def check_user(self, user):
         self.cursor.execute("SELECT user FROM subs where user = '" + user + "'")
         return self.cursor.fetchone() != None
 
     def check_mod(self, user):
-        if user in ["AngryAveragePeasant", "Georgy_K_Zhukov", "AHMessengerBot"]:
+        if user in ["AverageAngryPeasant", "Georgy_K_Zhukov", "AHMessengerBot"]:
             return True
 
         self.cursor.execute("SELECT user FROM subs where user = '" + user + "' AND mod = 1")
@@ -78,43 +98,33 @@ class DigestBot:
             print("remove user " + user)
             self.print_db()
 
-    def mod_user(self, user):
-        if not self.check_user(user) and not self.check_mod(user):
+    def mod_user(self, user, text):
+        if not self.check_user(user) or not self.check_mod(user):
             return
+        
+        if not text:
+            text = user
 
-        self.cursor.execute("UPDATE subs SET mod = 1 WHERE user = '" + user + "'")
+        self.cursor.execute("UPDATE subs SET mod = 1 WHERE user = '" + text + "'")
         self.db.commit()
 
         if self.debug:
-            print("mod user " + user)
+            print("mod user " + text)
             self.print_db()
 
-    def unmod_user(self, user):
-        if not self.check_user(user) and not self.check_mod(user):
+    def unmod_user(self, user, text):
+        if not self.check_user(user) or not self.check_mod(user):
             return
 
-        self.cursor.execute("UPDATE subs SET mod = 0 WHERE user = '" + user + "'")
+        if not text:
+            text = user
+
+        self.cursor.execute("UPDATE subs SET mod = 0 WHERE user = '" + text + "'")
         self.db.commit()
 
         if self.debug:
-            print("unmod user " + user)
+            print("unmod user " + text)
             self.print_db()
-
-    def send_message(self, message):
-        text = message.body.strip()
-        user = message.author.name
-        subject = message.subject
-
-        if " " not in text or text[:text.find(" ")] != "!send":
-            self.send_pm(user, subject, text)
-
-        # checks if there is a mod with the user's name
-        if self.check_mod(user):
-            if text == "!send":
-                self.send_pm(user, subject, "Error: must include message to send!")
-            self.send_digest(subject, text[text.find(" ")+1:])
-        else:
-            self.send_pm(user, subject, text)
 
     def send_digest(self, subject, text):
         users = self.cursor.execute("SELECT user FROM subs")
@@ -126,8 +136,8 @@ class DigestBot:
             print("digest sent")
 
     def send_pm(self, user, subject, text):
-        if text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod", "send"] and text[0] != "!":
-            text = "User " + user + " has sent you a message through DigestBot:\n" + "SUBJECT: " + subject + "\n" + text
+        if text and text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod", "send"] and text[0] != "!":
+            text = "User " + user + " has sent you a message through DigestBot:\n\n" + "SUBJECT: " + subject + "\n\n" + text
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
 
         if self.debug:
