@@ -137,14 +137,16 @@ class DigestBot:
 
     def print_db(self):
         self.cursor.execute("SELECT * FROM SUBS")
-        print(self.cursor.fetchall())
+        self.logger.debug(self.cursor.fetchall())
 
     def main(self):
         self.print_db()
-        # what does this return past the intial 100?
-        for message in self.reddit.inbox.stream():
-            self.parse_message(message)
-            message.mark_read()
+        try:
+            for message in self.reddit.inbox.stream():
+                self.parse_message(message)
+                message.mark_read()
+        except sqlite3.DatabaseError as err:
+            self.logger.error("Sqlite error: " + str(err))
 
 if __name__ == "__main__":
     bot = DigestBot()
