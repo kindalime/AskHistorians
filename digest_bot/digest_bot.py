@@ -11,9 +11,9 @@ class DigestBot:
         self.db = self.create_database()
         self.cursor = self.db.cursor()
         if os.getenv("AHDEBUG") in ["TRUE", "true"]:
-            self.logger = logging.basicConfig(filename='digest.log', level=logging.DEBUG)
+            logging.basicConfig(filename='digest.log', level=logging.DEBUG)
         else:
-            self.logger = logging.basicConfig(filename='digest.log', level=logging.INFO)
+            logging.basicConfig(filename='digest.log', level=logging.INFO)
 
     def reddit_init(self):
         load_dotenv()
@@ -43,7 +43,7 @@ class DigestBot:
     def parse_message(self, message):
         command, text = self.extract_command(message.body)
         subject = message.subject
-        self.logger.debug(f"Parsed message with command {command} and text {text}.")
+        logging.debug(f"Parsed message with command {command} and text {text}.")
         user = message.author.name
 
         if command in ["!sub", "!subscribe"]:
@@ -81,25 +81,25 @@ class DigestBot:
 
     def add_user(self, user):
         if self.check_user(user):
-            self.logger.info(f"Attempted add failed, {user} is already subbed.")
+            logging.info(f"Attempted add failed, {user} is already subbed.")
             return
 
         self.cursor.execute("INSERT INTO SUBS VALUES ('" + user + "', 0)")
         self.db.commit()
-        self.logger.info(f"Added user {user} successfully.")
+        logging.info(f"Added user {user} successfully.")
 
     def remove_user(self, user):
         if not self.check_user(user):
-            self.logger.info(f"Attempted remove failed, {user} is already not subbed.")
+            logging.info(f"Attempted remove failed, {user} is already not subbed.")
             return
 
         self.cursor.execute("DELETE FROM SUBS WHERE user = '" + user + "'")
         self.db.commit()
-        self.logger.info(f"Removed user {user} successfully.")
+        logging.info(f"Removed user {user} successfully.")
 
     def mod_user(self, user, text):
         if not self.check_user(user) or not self.check_mod(user):
-            self.logger.info(f"Attempted mod failed, {user} is not modded.")
+            logging.info(f"Attempted mod failed, {user} is not modded.")
             return
         
         if not text:
@@ -107,11 +107,11 @@ class DigestBot:
 
         self.cursor.execute("UPDATE subs SET mod = 1 WHERE user = '" + text + "'")
         self.db.commit()
-        self.logger.info(f"Mod {user} modded user {text} successfully.")
+        logging.info(f"Mod {user} modded user {text} successfully.")
 
     def unmod_user(self, user, text):
         if not self.check_user(user) or not self.check_mod(user):
-            self.logger.info(f"Attempted unmod failed, {user} is not modded.")
+            logging.info(f"Attempted unmod failed, {user} is not modded.")
             return
 
         if not text:
@@ -119,25 +119,25 @@ class DigestBot:
 
         self.cursor.execute("UPDATE subs SET mod = 0 WHERE user = '" + text + "'")
         self.db.commit()
-        self.logger.info(f"Mod {user} unmodded user {text} successfully.")
+        logging.info(f"Mod {user} unmodded user {text} successfully.")
 
     def send_digest(self, subject, text):
         users = self.cursor.execute("SELECT user FROM subs")
         for user in users:
             user = user[0]
             self.reddit.redditor(user).message(subject, text)
-        self.logger.info(f"User {user} successfully sent digest.")
-        self.logger.debug(f"Digest had subject {subject} and text {text}.")
+        logging.info(f"User {user} successfully sent digest.")
+        logging.debug(f"Digest had subject {subject} and text {text}.")
 
     def send_pm(self, user, subject, text):
         if text and text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod", "send"] and text[0] != "!":
             text = "User " + user + " has sent you a message through DigestBot:\n\n" + "SUBJECT: " + subject + "\n\n" + text
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
-        self.logger.debug(f"Private message sent by user {user}.")
+        logging.debug(f"Private message sent by user {user}.")
 
     def print_db(self):
         self.cursor.execute("SELECT * FROM SUBS")
-        self.logger.debug(self.cursor.fetchall())
+        logging.debug(self.cursor.fetchall())
 
     def main(self):
         self.print_db()
@@ -146,7 +146,7 @@ class DigestBot:
                 self.parse_message(message)
                 message.mark_read()
         except sqlite3.DatabaseError as err:
-            self.logger.error("Sqlite error: " + str(err))
+            logging.error("Sqlite error: " + str(err))
 
 if __name__ == "__main__":
     bot = DigestBot()
