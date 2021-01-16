@@ -3,13 +3,17 @@ import prawcore
 from dotenv import load_dotenv
 import os
 import sqlite3
+import logging
 
 class DigestBot:
     def __init__(self):
         self.reddit = self.reddit_init()
         self.db = self.create_database()
         self.cursor = self.db.cursor()
-        self.debug = os.getenv("AHDEBUG") in ["TRUE", "true"]
+        if os.getenv("AHDEBUG") in ["TRUE", "true"]:
+            self.logger = logging.basicConfig(filename='digest.log', level=logging.DEBUG)
+        else:
+            self.logger = logging.basicConfig(filename='digest.log', level=logging.INFO)
 
     def reddit_init(self):
         load_dotenv()
@@ -39,8 +43,7 @@ class DigestBot:
     def parse_message(self, message):
         command, text = self.extract_command(message.body)
         subject = message.subject
-        if self.debug:
-            print(command, text)
+        self.logger.debug(f"Parsed message with command {command} and text {text}.")
         user = message.author.name
 
         if command in ["!sub", "!subscribe"]:
@@ -78,28 +81,25 @@ class DigestBot:
 
     def add_user(self, user):
         if self.check_user(user):
+            self.logger.info(f"Attempted add failed, {user} is already subbed.")
             return
 
         self.cursor.execute("INSERT INTO SUBS VALUES ('" + user + "', 0)")
         self.db.commit()
-
-        if self.debug:
-            print("add user " + user)
-            self.print_db()
+        self.logger.info(f"Added user {user} successfully.")
 
     def remove_user(self, user):
         if not self.check_user(user):
+            self.logger.info(f"Attempted remove failed, {user} is already not subbed.")
             return
 
         self.cursor.execute("DELETE FROM SUBS WHERE user = '" + user + "'")
         self.db.commit()
-
-        if self.debug:
-            print("remove user " + user)
-            self.print_db()
+        self.logger.info(f"Removed user {user} successfully.")
 
     def mod_user(self, user, text):
         if not self.check_user(user) or not self.check_mod(user):
+            self.logger.info(f"Attempted mod failed, {user} is not modded.")
             return
         
         if not text:
@@ -107,13 +107,11 @@ class DigestBot:
 
         self.cursor.execute("UPDATE subs SET mod = 1 WHERE user = '" + text + "'")
         self.db.commit()
-
-        if self.debug:
-            print("mod user " + text)
-            self.print_db()
+        self.logger.info(f"Mod {user} modded user {text} successfully.")
 
     def unmod_user(self, user, text):
         if not self.check_user(user) or not self.check_mod(user):
+            self.logger.info(f"Attempted unmod failed, {user} is not modded.")
             return
 
         if not text:
@@ -121,27 +119,21 @@ class DigestBot:
 
         self.cursor.execute("UPDATE subs SET mod = 0 WHERE user = '" + text + "'")
         self.db.commit()
-
-        if self.debug:
-            print("unmod user " + text)
-            self.print_db()
+        self.logger.info(f"Mod {user} unmodded user {text} successfully.")
 
     def send_digest(self, subject, text):
         users = self.cursor.execute("SELECT user FROM subs")
         for user in users:
             user = user[0]
             self.reddit.redditor(user).message(subject, text)
-        
-        if self.debug:
-            print("digest sent")
+        self.logger.info(f"User {user} successfully sent digest.")
+        self.logger.debug(f"Digest had subject {subject} and text {text}.")
 
     def send_pm(self, user, subject, text):
         if text and text not in ["sub", "subscribe", "unsub", "unsubscribe", "mod", "unmod", "send"] and text[0] != "!":
             text = "User " + user + " has sent you a message through DigestBot:\n\n" + "SUBJECT: " + subject + "\n\n" + text
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
-
-        if self.debug:
-            print("pm sent to " + user)
+        self.logger.debug(f"Private message sent by user {user}.")
 
     def print_db(self):
         self.cursor.execute("SELECT * FROM SUBS")
