@@ -46,6 +46,9 @@ class DigestBot:
         logging.debug(f"Parsed message with command {command} and text {text}.")
         user = message.author.name
 
+        if user in ["reddit"]: # automated emails
+            return
+
         if command in ["!sub", "!subscribe"]:
             self.add_user(user)
         elif command in ["!unsub", "!unsubscribe"]:
