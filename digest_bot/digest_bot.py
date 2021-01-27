@@ -65,10 +65,17 @@ class DigestBot:
                     self.send_digest(subject, text[text.find(" ")+1:])
             else:
                 self.send_pm(user, subject, text)
+        elif command in ["!export_mods"]:
+            self.export_mods(user)
         else:
             text = message.body.strip()
             user = message.author.name
             self.send_pm(user, subject, text)
+
+    def fetch_mods(self):
+        self.cursor.execute("SELECT user FROM subs where mod = 1")
+        self.cursor.fetchall()
+        return [user[0] for user in self.cursor.fetchall()]
 
     def check_user(self, user):
         self.cursor.execute("SELECT user FROM subs where user = '" + user + "'")
@@ -101,7 +108,7 @@ class DigestBot:
         logging.info(f"Removed user {user} successfully.")
 
     def mod_user(self, user, text):
-        if not self.check_user(user) or not self.check_mod(user):
+        if not self.check_mod(user):
             logging.info(f"Attempted mod failed, {user} is not modded.")
             return
         
@@ -113,7 +120,7 @@ class DigestBot:
         logging.info(f"Mod {user} modded user {text} successfully.")
 
     def unmod_user(self, user, text):
-        if not self.check_user(user) or not self.check_mod(user):
+        if not self.check_mod(user):
             logging.info(f"Attempted unmod failed, {user} is not modded.")
             return
 
@@ -137,6 +144,17 @@ class DigestBot:
             text = "User " + user + " has sent you a message through DigestBot:\n\n" + "SUBJECT: " + subject + "\n\n" + text
             self.reddit.redditor("AverageAngryPeasant").message("DigestBot PM", text)
         logging.debug(f"Private message sent by user {user}.")
+
+    def export_mods(self, user):
+        if not self.check_mod(user):
+            logging.info(f"Attempted mod export failed, {user} is not modded.")
+            return
+
+        users = '\n'.join(self.fetch_mods())
+        if not users:
+            users = "There are no currently modded users."
+        self.reddit.redditor(user).message("List of AHMessengerBot mods", users)
+        logging.info(f"Sent {user} list of mods successfully.")
 
     def print_db(self):
         self.cursor.execute("SELECT * FROM SUBS")
