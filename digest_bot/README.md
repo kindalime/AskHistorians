@@ -25,5 +25,8 @@ As of now, DigestBot has only a few commands. Use these commands by sending them
 * !mod \[user\]: Mods a user. Must have mod permissions. Default value for user is the sender.
 * !unmod \[user\]: Unmods a user. Must have mod permissions. Default value for user is the sender.
 * !send: Copies the rest of the message text and its subject and sends that as a new message to all subs.
+* !export_mods: Responds with the usernames of all modded users. Must have mod permissions.
 
-Messages that are sent to u/AHMessengerBot that do not start with a command will be sent to me through PM.
+For the !send command, format your message the same way that you would format any reddit PM: just add "!send " to the front of it. Additionally, for all command except the !send command, the subject of the message does not matter.
+
+Note that commands must be separated from the rest of their text with a space. Messages that are sent to u/AHMessengerBot that do not start with a command will be sent to me through PM.
