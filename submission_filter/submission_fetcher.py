@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 class SubmissionFetcher:
     def __init__(self):
         self.reddit = self.reddit_init()
-        self.ps = psaw.PushShiftAPI(self.reddit)
+        self.ps = psaw.PushshiftAPI(self.reddit)
 
     def reddit_init(self):
         load_dotenv()
@@ -19,13 +19,16 @@ class SubmissionFetcher:
         user_agent = "SubmissionFetcher:v1.0 (by u/AverageAngryPeasant)"
         return praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent, username=username, password=password)
 
-    def fetch_submissions(self, subreddit):
+    def fetch_submissions(self, subreddit, limit=None):
         cache = []
-        gen = ps.search_submissions(subreddit='askreddit')
+        gen = self.ps.search_submissions(subreddit=subreddit)
         for c in gen:
             cache.append(c)
 
             if len(cache) % 100 == 0:
                 print(f"Reached {len(cache)} submissions!")
                 print("Time: " + datetime.datetime.now().strftime("%I:%M %p"))
+            if limit and len(cache) == limit:
+                break
+
         return cache
