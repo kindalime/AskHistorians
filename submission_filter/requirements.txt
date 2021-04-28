@@ -1,0 +1,5 @@
+tkcalendar
+praw
+psaw
+prawcore
+python-dotenv

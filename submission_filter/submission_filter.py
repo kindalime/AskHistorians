@@ -5,7 +5,6 @@ import praw
 import psaw
 import prawcore
 import datetime as dt
-import pytz
 from dotenv import load_dotenv
 from utils import *
 
