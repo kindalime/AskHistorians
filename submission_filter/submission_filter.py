@@ -6,7 +6,6 @@ import psaw
 import prawcore
 import datetime as dt
 from dotenv import load_dotenv
-from utils import *
 
 class Submission_Filter:
     """Class that handles all of the internal work with reddit for fetching saves."""
